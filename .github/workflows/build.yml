@@ -8,12 +8,19 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: 1.2.0
 
       - name: select xcode
         run: sudo xcode-select -s /Applications/Xcode.app
 
       - name: resolve packages
         run: xcodebuild -resolvePackageDependencies -project Amperfy.xcodeproj -scheme Amperfy
+
+      - name: strip entitlements
+        run: |
+          /usr/libexec/PlistBuddy -c "Clear dict" Amperfy/Amperfy.entitlements 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :get-task-allow bool true" Amperfy/Amperfy.entitlements
 
       - name: build archive
         run: |
@@ -29,9 +36,9 @@ jobs:
 
       - name: export ipa
         run: |
-          mkdir -p build/ipa
-          cp -r build/Amperfy.xcarchive/Products/Applications/Amperfy.app build/ipa/
-          cd build/ipa && zip -r ../Amperfy.ipa Amperfy.app
+          mkdir -p build/Payload
+          cp -r build/Amperfy.xcarchive/Products/Applications/Amperfy.app build/Payload/
+          cd build && zip -r Amperfy.ipa Payload/
 
       - uses: actions/upload-artifact@v4
         with:

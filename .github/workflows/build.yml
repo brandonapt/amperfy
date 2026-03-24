@@ -1,0 +1,39 @@
+name: build ipa
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: select xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: resolve packages
+        run: xcodebuild -resolvePackageDependencies -project Amperfy.xcodeproj -scheme Amperfy
+
+      - name: build archive
+        run: |
+          xcodebuild archive \
+            -project Amperfy.xcodeproj \
+            -scheme Amperfy \
+            -destination "generic/platform=iOS" \
+            -archivePath build/Amperfy.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
+
+      - name: export ipa
+        run: |
+          mkdir -p build/ipa
+          cp -r build/Amperfy.xcarchive/Products/Applications/Amperfy.app build/ipa/
+          cd build/ipa && zip -r ../Amperfy.ipa Amperfy.app
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Amperfy-ipa
+          path: build/Amperfy.ipa

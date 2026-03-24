@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 1.2.0
+          ref: v1.2.0
 
       - name: select xcode
         run: sudo xcode-select -s /Applications/Xcode.app
